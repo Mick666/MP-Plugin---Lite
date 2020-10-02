@@ -1,0 +1,126 @@
+body {
+    margin: 40px;
+    background-color: rgb(32, 33, 36);
+    display: block;
+}
+div {
+    color: white;
+}
+
+a {
+    color: lightblue;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 15px;
+}
+
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 7px;
+    width: 7px;
+    left: 2px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(8px);
+    -ms-transform: translateX(8px);
+    transform: translateX(8px);
+}
+
+.slider.round {
+    border-radius: 6px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+} 
+
+.itemGrid {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto auto;
+    column-gap: 7px;
+    row-gap: 7px;
+}
+
+#parentGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 7px;
+    row-gap: 7px;
+}
+
+
+#staticTextParentGrid {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: auto;
+}
+
+#decapGrid {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto auto;
+}
+
+.container {
+    position: relative;
+    margin: 0px auto;
+    width: 570px;
+    padding: initial;
+    border: 1px solid #D2DBED;
+    border-radius: 5px;
+    box-shadow: 3px 3px #888888;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: rgb(41,42,45);
+}
+.reminderText {
+    margin-bottom: 10px;
+}
+.staticText {
+    margin: 2px;
+}
+.switchContainer {
+    margin-bottom: 10px;
+}
+#hotkeys {
+    padding-left: 20px;
+    padding-right: 20px;
+}
