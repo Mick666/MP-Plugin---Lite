@@ -62,7 +62,7 @@ document.addEventListener('mousedown', async function (e) {
     }
 })
 
-if (window.location.href.toString() === 'https://www.mediaportal.com' || window.location.href.toString().startsWith('https://www.mediaportal.com/login.aspx')) {
+if (window.location.href.toString() === 'https://www.mediaportal.com/' || window.location.href.toString() === 'https://www.mediaportal.com' || window.location.href.toString().startsWith('https://www.mediaportal.com/login.aspx')) {
     document.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
             let lastReset = await getLastContentReset()
@@ -121,8 +121,8 @@ async function archiveSelectedContent() {
         const outletName = x.parentElement.children[3].firstElementChild.firstElementChild.firstElementChild.innerText.replace(/ \(page [0-9]{1,}\)/, '')
         let headline
         if (x.parentElement.parentElement.parentElement.parentElement.className.startsWith('media-item-syndication')) {
-            headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(30)
-        } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText
+            headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
+        } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
 
         return `${headline} | ${outletName}`
     })
