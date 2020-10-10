@@ -3,6 +3,16 @@ let currentPortal = null
 let lastAddedContent = []
 
 window.onload = async function () {
+    let lastReset = await getLastContentReset()
+    let currentDate = new Date()
+    let timeDif = (currentDate.getTime() - new Date(lastReset).getTime()) / 1000 / 3600
+    if (timeDif > 15) {
+        chrome.storage.local.set({ contentReset: currentDate.toString() }, function() {
+        })
+        chrome.storage.local.set({ archivedContent: {} }, function() {
+        })
+    }
+
     if (window.location.href.toString().startsWith('https://app.mediaportal.com/')) currentPortal = await getCurrentPortal()
     console.log(currentPortal)
     if (window.location.href === 'https://app.mediaportal.com/#/report-builder/view') {
@@ -14,7 +24,7 @@ window.onload = async function () {
             }), 500)
         }
     }
-} 
+}
 
 document.addEventListener('mousedown', async function (e) {
 
@@ -117,6 +127,8 @@ chrome.storage.local.get({ readmoreScroll: true }, function (data) {
 
 async function archiveSelectedContent() {
 
+    let archivedContent = await getArchivedContent()
+    if (!archivedContent[currentPortal]) archivedContent[currentPortal] = []
     const selectedItems = [...document.getElementsByClassName('media-item-checkbox')].filter(x => x.parentElement && x.checked).map(x => {
         const outletName = x.parentElement.children[3].firstElementChild.firstElementChild.firstElementChild.innerText.replace(/ \(page [0-9]{1,}\)/, '')
         let headline
@@ -125,23 +137,42 @@ async function archiveSelectedContent() {
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
 
         return `${headline} | ${outletName}`
-    })
+    }).filter(x => !archivedContent[currentPortal].includes(x))
+    console.log(selectedItems.length)
+    const archiveDate = new Date().toString()
+    const groupOption = document.getElementsByClassName('content-options')[0].innerText.trimEnd()
+    const sortOption = document.getElementsByClassName('content-options')[1].innerText.trimEnd()
+    const groupings = [...document.getElementsByClassName('media-group ng-scope')].map(x => x.innerText.split('\n').slice(0, 2).join(' with ').trimStart().trimEnd()).join(', ')
+    const tabs = await getMPTabs()
 
-    let selectedFolders = [...document.getElementsByClassName('checkbox-custom')].filter(x => /^Brands|Competitors|Personal|Release Coverage|Spokespeople/.test(x.id) && x.checked).map(x => x.parentElement.children[1].innerText.trimStart())
+    let selectedFolders = [...document.getElementsByClassName('checkbox-custom')].filter(x => /^Brands|^Competitors|^Personal|^Release Coverage|^Spokespeople/.test(x.id) && x.checked).map(x => x.parentElement.children[1].innerText.trimStart())
     if (selectedFolders.length === 0) return
 
-    let archivedContent = await getArchivedContent()
     console.log(archivedContent)
+    let detailedArchiveContent = await getDetailedArchivedContent()
+    if (!detailedArchiveContent[currentPortal]) detailedArchiveContent[currentPortal] = {}
 
-    if (!archivedContent[currentPortal]) archivedContent[currentPortal] = []
-    archivedContent[currentPortal].push(selectedItems.filter(x => !archivedContent[currentPortal].includes(x)))
+    archivedContent[currentPortal].push(selectedItems)
     archivedContent[currentPortal] = archivedContent[currentPortal].flat()
 
+    selectedItems.forEach(item => {
+        let detailedInfo = [archiveDate, groupOption, sortOption, groupings, tabs]
+        if (detailedArchiveContent[currentPortal][item]) {
+            detailedArchiveContent[currentPortal][item].push(detailedInfo)
+        } else {
+            detailedArchiveContent[currentPortal][item] = [detailedInfo]
+        }
+    })
+
     console.log(archivedContent)
+    console.log(detailedArchiveContent)
 
     lastAddedContent = [window.location.href.toString(), selectedItems]
 
     chrome.storage.local.set({ archivedContent: archivedContent }, function() {
+    })
+
+    chrome.storage.local.set({ detailedArchiveContent: detailedArchiveContent }, function() {
     })
 
 }
@@ -164,6 +195,7 @@ async function removeArchivedContent() {
 
     if (!archivedContent[currentPortal]) archivedContent[currentPortal] = []
     archivedContent[currentPortal] = archivedContent[currentPortal].filter(x => !selectedItems.includes(x))
+    console.log(archivedContent)
 
     chrome.storage.local.set({ archivedContent: archivedContent }, function() {
     })
@@ -187,7 +219,8 @@ async function checkAddedContent() {
             chrome.runtime.sendMessage({
                 action: 'createWindow',
                 url: 'missingContent.html',
-                missingItems: missingItems
+                missingItems: missingItems,
+                currentPortal: currentPortal
             })
         } else {
             alert('No missing items detected!*\n\n\n*We hope anyway')
@@ -249,6 +282,26 @@ function getLastContentReset() {
     return new Promise(options => {
         chrome.storage.local.get({ contentReset: 'September 30, 2020' }, function (data) {
             options(data.contentReset)
+        })
+    })
+}
+
+
+function getMPTabs() {
+    return new Promise(response => {
+        chrome.runtime.sendMessage({
+            action: 'logTabs',
+            incog: chrome.extension.inIncognitoContext
+        }, function(tabs) {
+            response(tabs.tabs)
+        })
+    })
+}
+
+function getDetailedArchivedContent() {
+    return new Promise(options => {
+        chrome.storage.local.get({ detailedArchiveContent: {} }, function (data) {
+            options(data.detailedArchiveContent)
         })
     })
 }
