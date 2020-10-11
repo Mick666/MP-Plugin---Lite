@@ -11,6 +11,8 @@ window.onload = async function () {
         })
         chrome.storage.local.set({ archivedContent: {} }, function() {
         })
+        chrome.storage.local.set({ detailedArchiveContent: {} }, function() {
+        })
     }
 
     if (window.location.href.toString().startsWith('https://app.mediaportal.com/')) currentPortal = await getCurrentPortal()
@@ -54,6 +56,8 @@ document.addEventListener('mousedown', async function (e) {
             })
             chrome.storage.local.set({ archivedContent: {} }, function() {
             })
+            chrome.storage.local.set({ detailedArchiveContent: {} }, function() {
+            })
         }
         if (chrome.extension.inIncognitoContext) {
             chrome.storage.local.set({ currentPortalIncog: document.getElementById('txtUsername').value.toLowerCase() }, function() {
@@ -82,6 +86,8 @@ if (window.location.href.toString() === 'https://www.mediaportal.com/' || window
                 chrome.storage.local.set({ contentReset: currentDate.toString() }, function() {
                 })
                 chrome.storage.local.set({ archivedContent: {} }, function() {
+                })
+                chrome.storage.local.set({ detailedArchiveContent: {} }, function() {
                 })
             }
             if (chrome.extension.inIncognitoContext) {
@@ -136,7 +142,7 @@ async function archiveSelectedContent() {
             headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
 
-        return `${headline} | ${outletName}`
+        return `${headline} ||| ${outletName}`
     }).filter(x => !archivedContent[currentPortal].includes(x))
     console.log(selectedItems.length)
     const archiveDate = new Date().toString()
@@ -185,7 +191,7 @@ async function removeArchivedContent() {
             headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
 
-        return `${headline} | ${outletName}`
+        return `${headline} ||| ${outletName}`
     })
     let archivedContent = await getArchivedContent()
 
@@ -205,7 +211,7 @@ async function checkAddedContent() {
     let RPItems = [...document.getElementsByClassName('media-item media-item-compact')].map(x => {
         const outletName = x.children[1].firstElementChild.children[3].firstElementChild.innerText.replace(/ \(page [0-9]{1,}\)/, '')
         const headline = x.firstElementChild.children[1].innerText.slice(0, 90)
-        return `${headline} | ${outletName}`
+        return `${headline} ||| ${outletName}`
     })
     console.log(RPItems)
     console.log(currentPortal)

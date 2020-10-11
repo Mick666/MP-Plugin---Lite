@@ -1,9 +1,3 @@
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(request)
-    if (request && request.missingContent) {
-        document.getElementById('missing').innerText = request.missingContent.join('\n')
-    }
-})
 window.onload = async function() {
     document.getElementById('btn').addEventListener('click', toggleDetailedContent)
     const missingContent = await getMissingContent()
@@ -11,7 +5,7 @@ window.onload = async function() {
     const detailedArchivedContent = await getDetailedArchivedContent()
 
     missingContent.forEach(item => {
-        let [headline, outlet] = item.split(' | ')
+        let [headline, outlet] = item.split(' ||| ')
         let headlinePara = document.createElement('P')
         headlinePara.innerText = headline
         let outletPara = document.createElement('P')
@@ -19,15 +13,24 @@ window.onload = async function() {
         document.getElementById('missing').appendChild(headlinePara)
         document.getElementById('missing').appendChild(outletPara)
 
-        detailedArchivedContent[currentPortal][item].forEach(x => {
-            x.forEach(y => {
-                let paraElem = document.createElement('P')
-                paraElem.innerText = y.toString()
-                paraElem.className = 'detailed'
-                if (y.toString() === '') paraElem.innerText = 'N/A'
-                document.getElementById('missing').appendChild(paraElem)
+        if (detailedArchivedContent[currentPortal][item]) {
+            detailedArchivedContent[currentPortal][item].forEach(x => {
+                x.forEach(y => {
+                    let paraElem = document.createElement('P')
+                    paraElem.innerText = y.toString()
+                    paraElem.className = 'detailed'
+                    if (y.toString() === '') paraElem.innerText = 'N/A'
+                    document.getElementById('missing').appendChild(paraElem)
+                })
             })
-        })
+        } else {
+            for (let i = 0; i < 5; i++) {
+                let para = document.createElement('P')
+                para.innerText = 'N/A'
+                para.className = 'detailed'
+                document.getElementById('missing').appendChild(para)
+            }
+        }
     })
 }
 
@@ -78,6 +81,3 @@ function getCurrentPortal() {
         })
     })
 }
-
-
-
