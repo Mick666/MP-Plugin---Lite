@@ -3,6 +3,7 @@ let currentPortal = null
 let lastAddedContent = []
 
 window.onload = async function () {
+    const browserURL = window.location.href.toString()
     let lastReset = await getLastContentReset()
     let currentDate = new Date()
     let timeDif = (currentDate.getTime() - new Date(lastReset).getTime()) / 1000 / 3600
@@ -15,9 +16,13 @@ window.onload = async function () {
         })
     }
 
-    if (window.location.href.toString().startsWith('https://app.mediaportal.com/')) currentPortal = await getCurrentPortal()
+    if (browserURL.startsWith('https://app.mediaportal.com/')) currentPortal = await getCurrentPortal()
+    if (!currentPortal && browserURL !== 'https://www.mediaportal.com/' && !browserURL.startsWith('https://www.mediaportal.com/login.aspx') && browserURL.startsWith('https://app.mediaportal.com')) {
+        alert('Plugin error: The briefing login for this portal hasn\'t been saved. Please log out and into this portal to resolve this issue.\
+        \nIf you\'re still seeing this message after relogging, contact Michael.Martino@isentia.com. Note the unadded item tracker won\'t work with no login saved')
+    }
     console.log(currentPortal)
-    if (window.location.href === 'https://app.mediaportal.com/#/report-builder/view') {
+    if (browserURL === 'https://app.mediaportal.com/#/report-builder/view') {
         document.title = 'Report Builder'
         if (document.getElementsByClassName('dropdown-display').length > 0 && document.getElementsByClassName('dropdown-display')[0].innerText === ' Excel') createRPButton()
         else {
@@ -141,13 +146,13 @@ async function archiveSelectedContent() {
         if (x.parentElement.parentElement.parentElement.parentElement.className.startsWith('media-item-syndication')) {
             headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
-
+        headline = headline.replace(/’|‘/g, '\'')
         return `${headline} ||| ${outletName}`
     }).filter(x => !archivedContent[currentPortal].includes(x))
     console.log(selectedItems.length)
     const archiveDate = new Date().toString()
-    const groupOption = document.getElementsByClassName('content-options')[0].innerText.trimEnd()
-    const sortOption = document.getElementsByClassName('content-options')[1].innerText.trimEnd()
+    const groupOption = document.getElementsByClassName('content-options').length > 1 ? document.getElementsByClassName('content-options')[0].innerText.trimEnd() : 'N/A'
+    const sortOption = document.getElementsByClassName('content-options').length > 1 ? document.getElementsByClassName('content-options')[1].innerText.trimEnd() : document.getElementsByClassName('content-options')[0].innerText.trimEnd()
     const groupings = [...document.getElementsByClassName('media-group ng-scope')].map(x => x.innerText.split('\n').slice(0, 2).join(' with ').trimStart().trimEnd()).join(', ')
     const tabs = await getMPTabs()
 
@@ -163,10 +168,8 @@ async function archiveSelectedContent() {
 
     selectedItems.forEach(item => {
         let detailedInfo = [archiveDate, groupOption, sortOption, groupings, tabs]
-        if (detailedArchiveContent[currentPortal][item]) {
-            detailedArchiveContent[currentPortal][item].push(detailedInfo)
-        } else {
-            detailedArchiveContent[currentPortal][item] = [detailedInfo]
+        if (!detailedArchiveContent[currentPortal][item]) {
+            detailedArchiveContent[currentPortal][item] = detailedInfo
         }
     })
 
@@ -190,7 +193,7 @@ async function removeArchivedContent() {
         if (x.parentElement.parentElement.parentElement.parentElement.className.startsWith('media-item-syndication')) {
             headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
-
+        headline = headline.replace(/’|‘/g, '\'')
         return `${headline} ||| ${outletName}`
     })
     let archivedContent = await getArchivedContent()
@@ -210,7 +213,7 @@ async function removeArchivedContent() {
 async function checkAddedContent() {
     let RPItems = [...document.getElementsByClassName('media-item media-item-compact')].map(x => {
         const outletName = x.children[1].firstElementChild.children[3].firstElementChild.innerText.replace(/ \(page [0-9]{1,}\)/, '')
-        const headline = x.firstElementChild.children[1].innerText.slice(0, 90)
+        const headline = x.firstElementChild.children[1].innerText.slice(0, 90).replace(/’|‘/g, '\'')
         return `${headline} ||| ${outletName}`
     })
     console.log(RPItems)
@@ -271,13 +274,13 @@ function getArchivedContent() {
 function getCurrentPortal() {
     if (chrome.extension.inIncognitoContext) {
         return new Promise(options => {
-            chrome.storage.local.get({ currentPortalIncog: {} }, function (data) {
+            chrome.storage.local.get({ currentPortalIncog: null }, function (data) {
                 options(data.currentPortalIncog)
             })
         })
     } else {
         return new Promise(options => {
-            chrome.storage.local.get({ currentPortalRegular: {} }, function (data) {
+            chrome.storage.local.get({ currentPortalRegular: null }, function (data) {
                 options(data.currentPortalRegular)
             })
         })
