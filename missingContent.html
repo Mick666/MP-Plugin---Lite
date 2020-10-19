@@ -8,18 +8,23 @@
     <body>
         <div id='container'>
             <h1>Possible missing content:</h1>
-            <i id='instrText'>If an item listed below failed to add to a folder, click the below button and include the additional information when reporting the item</i>
+            <i>If an item listed below failed to add to a folder, click the below button and include the additional information when reporting the item</i><br><br>
+            <i>If you delete an item by mistake, refresh the page to undo changes. Hide the deletion buttons before copying the table.</i>
             <br>
-            <button id='btn'>Show detailed information</button>
-            <div id='missing'>
-                <h4> Headline:</h4>
-                <h4> Outlet:</h4>
-                <h4 class='detailed'> Time added: </h4>
-                <h4 class='detailed'> Group option: </h4>
-                <h4 class='detailed'> Sort option: </h4>
-                <h4 class='detailed'> Grouping numbers: </h4>
-                <h4 class='detailed'> MP tabs open: </h4>
-            </div>
+            <button class='btn'>Show detailed information</button>
+            <button class='btn'>Show delete buttons</button>
+            <table id='missing'>
+                <tr>
+                    <th class='button-parent'></th>
+                    <th>Headline: </th>
+                    <th>Outlet: </th>
+                    <th class='detailed'>Time added: </th>
+                    <th class='detailed'>Group option: </th>
+                    <th class='detailed'>Sort option: </th>
+                    <th class='detailed'>Grouping numbers: </th>
+                    <th class='detailed'>MP tabs open: </th>
+                </tr>
+            </table>
         </div>
     </body>
 </html>

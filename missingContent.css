@@ -32,9 +32,11 @@ a {
 }
 
 #missing {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 50px;
+    width: 100%;
+}
+
+th {
+    text-align: left;
 }
 
 
@@ -67,16 +69,31 @@ a {
     display: none;
 }
 
-#btn {
+.btn {
     margin-top: 10px;
     background-color: #222629;
     color: white;
     border-radius: 4px;
 }
-#btn:focus {
+
+.deleteButton {
+    background-color: #222629;
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.button-parent {
+    width: 100px;
+    display: none;
+}
+.btn:focus, .deleteButton:focus {
     outline: none;
     box-shadow: none;
   }
 i {
     font-weight: 500;
+}
+td, th {
+    padding: 10px;
 }
