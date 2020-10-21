@@ -140,15 +140,32 @@ async function archiveSelectedContent() {
 
     let archivedContent = await getArchivedContent()
     if (!archivedContent[currentPortal]) archivedContent[currentPortal] = []
-    const selectedItems = [...document.getElementsByClassName('media-item-checkbox')].filter(x => x.parentElement && x.checked).map(x => {
+
+    let itemIDs = [...document.getElementsByClassName('media-item-checkbox')].filter(x => x.parentElement && x.checked).map(x => {
+        try {
+            if (x.parentElement.parentElement.childElementCount > 1) {
+                let itemBlock = [...x.parentElement.parentElement.children[1].children].filter(x => x.className === 'media-item-data-block')
+                return itemBlock[0].firstElementChild.children[1].children[0].innerText.slice(9)
+            } else return 'N/A'
+        } catch (error) {
+            return 'N/A'
+        }
+    })
+    console.log(itemIDs)
+    const selectedItems = [...document.getElementsByClassName('media-item-checkbox')].filter(x => x.parentElement && x.checked).map((x, ind) => {
         const outletName = x.parentElement.children[3].firstElementChild.firstElementChild.firstElementChild.innerText.replace(/ \(page [0-9]{1,}\)/, '')
         let headline
         if (x.parentElement.parentElement.parentElement.parentElement.className.startsWith('media-item-syndication')) {
             headline = x.parentElement.parentElement.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         } else headline = x.parentElement.parentElement.parentElement.children[0].children[1].innerText.slice(0, 90)
         headline = headline.replace(/’|‘/g, '\'')
+        if (archivedContent[currentPortal].includes(`${headline} ||| ${outletName}`)) itemIDs[ind] = null
+
         return `${headline} ||| ${outletName}`
     }).filter(x => !archivedContent[currentPortal].includes(x))
+    itemIDs = itemIDs.filter(x => x)
+    console.log(itemIDs)
+
     console.log(selectedItems.length)
     const archiveDate = new Date().toString()
     const groupOption = document.getElementsByClassName('content-options').length > 1 ? document.getElementsByClassName('content-options')[0].innerText.trimEnd() : 'N/A'
@@ -158,19 +175,18 @@ async function archiveSelectedContent() {
 
     let selectedFolders = [...document.getElementsByClassName('checkbox-custom')].filter(x => /^Brands|^Competitors|^Personal|^Release Coverage|^Spokespeople/.test(x.id) && x.checked).map(x => x.parentElement.children[1].innerText.trimStart())
     if (selectedFolders.length === 0) return
-
+    selectedFolders = selectedFolders.join(', ')
     console.log(archivedContent)
+
     let detailedArchiveContent = await getDetailedArchivedContent()
     if (!detailedArchiveContent[currentPortal]) detailedArchiveContent[currentPortal] = {}
 
     archivedContent[currentPortal].push(selectedItems)
     archivedContent[currentPortal] = archivedContent[currentPortal].flat()
 
-    selectedItems.forEach(item => {
-        let detailedInfo = [archiveDate, groupOption, sortOption, groupings, tabs]
-        if (!detailedArchiveContent[currentPortal][item]) {
-            detailedArchiveContent[currentPortal][item] = detailedInfo
-        }
+    selectedItems.forEach((item, ind) => {
+        let detailedInfo = [archiveDate, groupOption, sortOption, groupings, tabs, itemIDs[ind], selectedFolders]
+        if (!detailedArchiveContent[currentPortal][item]) detailedArchiveContent[currentPortal][item] = detailedInfo
     })
 
     console.log(archivedContent)
@@ -178,10 +194,10 @@ async function archiveSelectedContent() {
 
     lastAddedContent = [window.location.href.toString(), selectedItems]
 
-    chrome.storage.local.set({ archivedContent: archivedContent }, function() {
+    chrome.storage.local.set({ archivedContent: archivedContent }, function () {
     })
 
-    chrome.storage.local.set({ detailedArchiveContent: detailedArchiveContent }, function() {
+    chrome.storage.local.set({ detailedArchiveContent: detailedArchiveContent }, function () {
     })
 
 }
@@ -206,7 +222,7 @@ async function removeArchivedContent() {
     archivedContent[currentPortal] = archivedContent[currentPortal].filter(x => !selectedItems.includes(x))
     console.log(archivedContent)
 
-    chrome.storage.local.set({ archivedContent: archivedContent }, function() {
+    chrome.storage.local.set({ archivedContent: archivedContent }, function () {
     })
 }
 
@@ -239,12 +255,14 @@ async function checkAddedContent() {
 }
 
 function createRPButton() {
+    if (document.getElementsByClassName('AVeryLongClassNameNoOneWillEverUse').length > 0) return
     let button = document.createElement('BUTTON')
     button.innerText = 'Check for missing content'
     button.addEventListener('click', checkAddedContent)
     button.style.marginLeft = '19px'
     button.style.color = 'black'
     button.style.borderColor = 'black'
+    button.className += 'AVeryLongClassNameNoOneWillEverUse'
     document.getElementsByClassName('dropdown-menu scroll-menu')[0].children[1].appendChild(button)
     let para = document.createElement('P')
     para.innerText = 'Instructions:\n1: Do selections normally.\n2: Add all selections to RP when done, switch to Excel template\n3: If RP is grouped by anything, make sure each grouping\
